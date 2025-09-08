@@ -21,8 +21,10 @@ pub fn main() !void {
     };
     defer res.deinit();
 
-    if (res.args.help != 0)
+    if (res.args.help != 0) {
         std.debug.print("--help\n", .{});
+        return;
+    }
 
     var stdout = std.fs.File.stdout();
     var stdout_writer = stdout.writerStreaming(&.{});
