@@ -1,7 +1,29 @@
 const std = @import("std");
 const hello = @import("hello");
+const clap = @import("clap");
 
 pub fn main() !void {
+    var gpa = std.heap.DebugAllocator(.{}){};
+    defer _ = gpa.deinit();
+
+    const params = comptime clap.parseParamsComptime(
+        \\-h, --help     Display this help and exit.
+    );
+
+    var diag = clap.Diagnostic{};
+    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+        .diagnostic = &diag,
+        .allocator = gpa.allocator(),
+    }) catch |err| {
+        // Report useful error and exit.
+        try diag.reportToFile(.stderr(), err);
+        return err;
+    };
+    defer res.deinit();
+
+    if (res.args.help != 0)
+        std.debug.print("--help\n", .{});
+
     var stdout = std.fs.File.stdout();
     var stdout_writer = stdout.writerStreaming(&.{});
 
